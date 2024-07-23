@@ -5,20 +5,6 @@ import { RectAreaLightUniformsLib } from "three/examples/jsm/lights/RectAreaLigh
 import { RenderPipeline } from "./render-pipeline";
 import { AssetManager } from "./asset-manager";
 
-/**
- * Flow:
- * - press the Next Chest button
- * - remove previous chest & loot still in scene
- * - generates a new chest and its loot
- * - chest is added to the scene above pedestal
- * - drop animation plays, chest drops onto pedestal
- * - can then interact with the chest (outline on intersect with mouse)
- * - clicking chest plays open animation
- * - loot pops out and falls onto rug
- * - click each loot item (outlined) to make it disappear
- * - left with the empty chest
- */
-
 enum Rarity {
   COMMON = "white",
   UNCOMMON = "green",
@@ -274,11 +260,12 @@ export class GameState {
     if (this.currentChest.lootItems.length) {
       const objects = this.currentChest.lootItems.map((item) => item.object);
 
-      const intersects = this.raycaster.intersectObjects(objects);
-      if (intersects.length) {
-        const objectHit = intersects[0].object;
-        this.renderPipeline.outlineObject(objectHit);
-        document.body.style.cursor = "pointer";
+      for (const object of objects) {
+        const bounds = new THREE.Box3().setFromObject(object);
+        if (this.raycaster.ray.intersectsBox(bounds)) {
+          this.renderPipeline.outlineObject(object);
+          document.body.style.cursor = "pointer";
+        }
       }
     }
   };
@@ -298,10 +285,9 @@ export class GameState {
 
     // Determine if clicking on a loot object
     for (const [index, lootItem] of this.currentChest.lootItems.entries()) {
-      const intersects = this.raycaster.intersectObject(lootItem.object);
-      if (intersects.length) {
+      const bounds = new THREE.Box3().setFromObject(lootItem.object);
+      if (this.raycaster.ray.intersectsBox(bounds)) {
         this.pickupLootItem(lootItem, index);
-
         return;
       }
     }
