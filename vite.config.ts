@@ -4,6 +4,6 @@ import { defineConfig } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: "/workshop-3/", // replace with the repo name
+  base: "/loot-box/",
   assetsInclude: ["**/*.gltf"],
 });
